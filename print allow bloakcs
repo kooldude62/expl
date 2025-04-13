@@ -1,0 +1,55 @@
+local Players = game:GetService("Players")
+
+local totalPartsChecked = 0
+local partsPrinted = 0
+local partsSkipped = 0
+
+for _, v in pairs(game.Workspace:GetDescendants()) do
+    if v:IsA("BasePart") then
+        totalPartsChecked += 1
+
+        if not v:IsA("Seat") and not v:IsA("VehicleSeat") and v.Anchored == false and v.CanCollide == true then
+            local insidePlayer = false
+            local current = v
+            while current and current ~= game do
+                if Players:GetPlayerFromCharacter(current) then
+                    insidePlayer = true
+                    break
+                end
+                current = current.Parent
+            end
+
+            if not insidePlayer and not v.Parent:FindFirstChild("Humanoid") then
+                local chain = {}
+                local current = v
+                while current do
+                    table.insert(chain, 1, current)
+                    if current == game.Workspace then
+                        break
+                    end
+                    current = current.Parent
+                end
+
+                print("Hierarchy for:", v.Name)
+                for depth, obj in ipairs(chain) do
+                    print(string.rep("  ", depth - 1) .. "↳ " .. obj.Name)
+                end
+                print("")
+
+                partsPrinted += 1
+            else
+                partsSkipped += 1
+            end
+        else
+            partsSkipped += 1
+        end
+    end
+end
+
+print("========== SUMMARY ==========")
+print("Total BaseParts Checked:", totalPartsChecked)
+print("Parts Printed (Valid):", partsPrinted)
+print("Parts Skipped (Filtered Out):", partsSkipped)
+print("=============================")
+
+game:GetService("StarterGui"):SetCore("DevConsoleVisible", true)
